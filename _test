@@ -1,0 +1,10 @@
+case `pwd` in
+    */dev/kuiu*)
+        echo "KUIU"
+        ;;
+    */dev/ralph-lauren*)
+        echo "RL"
+        ;;
+esac
+    
+

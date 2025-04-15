@@ -1,0 +1,118 @@
+#!/usr/bin/env node
+
+/* This is meant to be run from the command line & digested into an OmniFocus plugin.
+ * It emits a chunk of JSON like this:
+ * {
+ *     tasks: [
+ *         { title: "Task 1", due: "2024-07-25T16:14:41.000Z", tasks: [] },
+ *         { title: "Task 2", due: "2024-07-25T16:14:41.000Z", tasks: [] },
+ *     ]
+ * }
+ *
+ */
+
+const getTicketTitle = require('./js/TicketTitleFetcher');
+const NodeContext = require('./js/NodeContext');
+
+let ticketId = process.argv[2];
+let nodeContext = new NodeContext();
+
+let statusById = {};
+
+function gatherStatuses(ticketJson) {
+    let status = ticketJson.fields.status.name;
+    let ticketId = ticketJson.key;
+    statusById[ticketId] = status;
+    return true;
+}
+
+function getDateTime() {
+    // format the current date as 08/01/2024 9:00 PM
+    let now = new Date();
+    let month = now.getMonth() + 1;
+    let day = now.getDate();
+    let year = now.getFullYear();
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+    let ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12;
+    hours = hours ? hours : 12; // the hour '0' should be '12'
+    minutes = minutes < 10 ? '0' + minutes : minutes;
+    let strTime = `${month}/${day}/${year} ${hours}:${minutes} ${ampm}`;
+    return strTime;
+}
+
+function sortSubtasksByTicketId(tasks) {
+    return tasks.sort((a, b) => {
+        let aId = a.getTicketId();
+        let bId = b.getTicketId();
+        return aId.localeCompare(bId);
+    });
+}
+
+function formatTaskTitle(st, title) {
+    let ticketId = st.getTicketId();
+    let status = statusById[ticketId];
+    let fullTitle = `[${status}] ${ticketId}: ${title}`;
+    return fullTitle;
+}
+
+/**
+  * @param subtasks = [{ st, title }]
+ * @returns {*}
+ */
+function sortAndFormatSubtasks(subtasks) {
+    return subtasks
+        .sort((a, b) => a.st.getTicketId().localeCompare(b.st.getTicketId()))
+        .map(({ st, title }) => ({ st, title: formatTaskTitle(st, title) }))
+        .map(({ title }) => ({ title }));
+}
+
+function outputTicketJson(subTickets) {
+    subTickets = sortSubtasksByTicketId(subTickets);
+    return Promise.all(subTickets.map(st => getTicketTitle(st.getTicketId()).then(title => ({ st, title }))))
+        .then(sortAndFormatSubtasks)
+        .then(tasks => {
+            const subtasksTitle = `Subtasks as of ${getDateTime()}`;
+            const subtasks = {
+                tasks: [ // this is the list of subtasks that OmniFocus will grab
+                    {
+                        title: subtasksTitle, // I want the list to be under a single "subtasks" container
+                        tasks
+                    }
+                ]
+            };
+            console.log(JSON.stringify(subtasks, null, 2));
+        });
+}
+
+/* here for later, maybe */
+function isOpen(ticketJson) {
+    let status = ticketJson.fields.status.name;
+    return !/done/i.test(status);
+}
+
+/* Alas, the subtasks returned in the JSON don't have the assignee noted. */
+function isMine(ticketJson) {
+    let assigneeEmail = ticketJson.fields.assignee.emailAddress;
+    return /raser/i.test(assigneeEmail);
+}
+
+if (ticketId) {
+    let client = nodeContext.getClientByTicketId(ticketId);
+    let ticket = client.getTicket(ticketId);
+    ticket.getSubTickets(gatherStatuses) // note- using filter as a hack to gather statuses here
+        .then(outputTicketJson);
+} else {
+    let client = nodeContext.getCurrentClient();
+    client.getCurrentTicket()
+        .then(ticket => ticket.getSubTickets(gatherStatuses)) // note- using filter as a hack to gather statuses here
+        .then(outputTicketJson);
+}
+
+
+
+
+
+
+

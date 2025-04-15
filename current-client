@@ -1,0 +1,17 @@
+#!/bin/bash
+# bin=`dirname $0`
+# . $bin/_ticket_settings
+# echo $client_name
+
+if [ -z "$1" ]; then
+    dir=$(pwd)
+else
+    dir=$($HOME/bin/util/path-to "$1")
+fi
+
+client_name=$(echo "$dir" | grep "/dev/" | sed "s/.*\/*dev\/\([^/]*\).*/\1/")
+if [ -z "$client_name" ]; then
+    echo $(whoami)
+else
+    echo $client_name
+fi

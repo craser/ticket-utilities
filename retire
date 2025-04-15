@@ -1,0 +1,36 @@
+#!/bin/bash
+
+################################################################################
+# Usage:
+#     ctk <ticket> [base branch]
+#
+# 
+ticket_id="`ticket-id ${1}`"                                        # If I used a branch ID, strip the prefix off.
+work_branch="`ticket-branch ${1}`"									# 
+work_dir="`cat ${HOME}/.wkd`"										# 
+
+title "Moving related branches to attic."
+cd "${work_dir}"                                                    # cd into work area
+git checkout develop													# Stay out of the way of future delete.
+for branch in `git branch | grep ${work_branch}`; do				# 
+    echo "Ticket branch found: ${branch}"							#
+	git push --force attic ${branch}:${branch} | sed "s/^/    /"	# 
+	if [ $? == 0 ]; then											# 
+		echo "Deleting local branch ${branch}"						# 
+		git branch -D ${branch} | sed "s/^/    /"					# 
+	else															# 
+		echo "Unable to push ${branch} to attic."					# 
+		exit 10														# 
+	fi																# 
+done
+
+# title "Moving local notes/proxy files to attic."
+# subs_dir="`ticket-dir ${ticket_id}`"
+# attic_dir="`dirname ${subs_dir}`/attic"								# 
+# if [ -d "${subs_dir}" ]; then
+# 	echo "Moving subs dir to attic."
+# 	echo "    subs : ${subs_dir}"
+# 	echo "    attic: ${attic_dir}"
+# 	mkdir -p "`dirname ${subs_dir}`/attic"
+# 	mv "${subs_dir}" "${attic_dir}"
+# fi

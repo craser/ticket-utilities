@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+'use  strict'
+
+const TicketManager = require('./js/TicketManager');
+
+let string = process.argv[2];
+let ticketManager = new TicketManager();
+ticketManager.scrubTicketId(string)
+    .then(ticketId => {
+        let url = ticketManager.getTicketLinkByTicketId(ticketId);
+        console.log(url);
+    });
+

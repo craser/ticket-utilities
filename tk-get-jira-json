@@ -1,0 +1,16 @@
+#!/usr/bin/env node
+
+'use strict';
+
+const TicketManager = require('./js/TicketManager');
+new TicketManager().getCurrentTicket()
+    .then(ticket => ticket.getTicketJson())
+    .then(json => console.log(json));
+
+
+
+
+
+
+
+

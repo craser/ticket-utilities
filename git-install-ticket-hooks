@@ -1,0 +1,29 @@
+#!/bin/bash
+
+dir=`dirname $0`
+src_dir="$dir/git-hooks"
+dst_dir="./.git/hooks"
+
+echo "Current directory: `pwd`"
+if [ ! -d "$dst_dir" ]; then
+   echo "Hooks directory not found: $dst_dir"
+   exit 10
+else
+    for src_file in $src_dir/*; do
+        file_name=`basename $src_file`
+        dst_file="$dst_dir/$file_name"
+        if [ -f $dst_file ]; then
+            v=1
+            while [ -f "$dst_file.backup.$v" ]; do
+                v=$(($v + 1))
+            done
+            echo "Backing up existing hook:"
+            cp -v "$dst_file" "$dst_file.backup.$v"
+        fi
+
+        echo "Installing new hook:"
+        cp -v "$src_file" "$dst_file"
+        chmod +x "$dst_file"
+
+    done
+fi

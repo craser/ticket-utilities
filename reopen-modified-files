@@ -1,0 +1,36 @@
+#!/bin/bash
+ignore="spc.css|spc.css.map|spc.min.css|bootstrap.css|bootstrap.css.map|bootstrap.min.css|style.css|style.css.map|style.ie.css|style.min.css|app.min.js|bootstrap.bundle.min.js|cartridge/static/default"
+editor="WebStorm"
+
+
+max_commits=""
+while getopts "n:" opt; do
+    case "${opt}" in
+        n)                                          # case-insensitive
+            max_commits=$OPTARG
+            ;;
+    esac
+done
+shift $((OPTIND-1))             # Strip off the already-parse arguments.
+
+current_branch="`current-dev-branch`"
+ticket="`ticket-id $current_branch`"
+echo "Current branch  : $current_branch"
+echo "Ticket          : $ticket"
+num_commits="`git log | sed -n "/$ticket -/!q;p" | wc -l`"
+num_commits="`echo $num_commits`"                           # trim
+if [ ! -z "$max_commits" ]; then
+    echo "max commits: $max_commits"
+    num_commits=$(($num_commits>$max_commits ? $max_commits : $num_commits))
+else
+    echo "no max"
+fi
+
+files=`git diff --name-only HEAD~$num_commits | egrep -v "($ignore)"`
+for f in $files; do
+    echo "opening (abs): $f"
+    #open -a "$editor" "$f"
+    sleep 0.5
+done
+
+exit 0

@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+'use strict'
+
+const TicketManager = require('./js/TicketManager');
+new TicketManager().getCurrentTicketLink()
+    .then(link => console.log(link));
+

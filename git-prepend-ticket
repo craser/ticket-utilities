@@ -1,0 +1,10 @@
+#!/bin/bash
+
+commit_range="$1"
+current_branch="`current-dev-branch`"
+ticket="`ticket-id $current_branch`"
+echo "branch: $current_branch"
+echo "ticket: $ticket"
+echo "commit: $commit_range"
+git filter-branch -f --msg-filter "sed \"s/^/$ticket - /\"" $commit_range
+

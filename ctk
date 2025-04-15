@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+'use strict'
+const TicketManager = require('./js/TicketManager');
+let ticketId = process.argv[2];
+new TicketManager().checkoutTicket(ticketId)
+    .then(log => (log || []).forEach(line => console.log(line)));
+
+

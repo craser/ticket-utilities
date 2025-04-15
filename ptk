@@ -1,0 +1,191 @@
+#!/usr/bin/env node
+
+const GitRepo = require('./js/GitRepo');
+const TicketManager = require('./js/TicketManager');
+const getTicketTitle = require('./js/TicketTitleFetcher');
+const chalk = require('chalk');
+const MAX_FIELD_LENGTH = 40;
+
+const styles = {
+    sage: chalk.hex('#85e28b'),
+    sand: chalk.hex('#f3e7c9'),
+    butter: chalk.hex('#ffff76'),
+    sky: chalk.hex('#2dd0f0'),
+    slate: chalk.hex('#5e757a'),
+    brick: chalk.hex('#c94c4c'),
+};
+
+// https://stackoverflow.com/questions/21256861/what-are-valid-fields-for-the-format-option-of-git-for-each-ref
+const fields = [
+    "objectname", // commit hash
+    "refname", // branch name, but fully qualified. ex: refs/heads/THX-1138
+    "committerdate",
+    "subject",
+];
+
+const displayFields = [
+    { name: "ticket", style: styles.sage },
+    { name: "title", style: styles.sky },
+    { name: "objectname", style: styles.slate }, // commit hash
+    { name: "committerdate", style: styles.brick },
+    { name: "subject", style: styles.butter },
+];
+
+function prettifyRecord(record) {
+    record.objectname = record.objectname.substring(0, 6);
+    record.branch = record.refname.substring('refs/heads/'.length);
+    const date = new Date(record.committerdate);
+    record.committerdate = date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    return record;
+}
+
+function assignTicket(record) {
+    const regex = /[a-zA-Z]{2,4}-\d{3,5}/;
+    const ticket = [record.refname, record.subject].reduce((a, c) => {
+        const match = c.match(regex);
+        let ticket = match ? match[0] : a;
+        return ticket;
+    }, record.branch);
+    record.ticket = ticket;
+    return record;
+}
+
+function assignTitle(record) {
+    const ticketId = record.ticket;
+    return getTicketTitle(ticketId)
+        .then(title => {
+            record.title = title;
+            return record;
+        })
+        .catch(() => {
+            record.title = null;
+            return record;
+        }); // ignore errors
+}
+
+function reduceToTickets(records) {
+    const found = {}; // ticket => record
+    records.forEach(record => {
+        if (record.ticket in found) {
+            const existingRecord = found[record.ticket];
+            // this is a hack to find the branch with the exact ticket name
+            if (record.branch.length < existingRecord.branch.length) {
+                found[record.ticket] = record;
+            }
+        } else {
+            found[record.ticket] = record;
+        }
+    });
+    let filtered = records.filter(record => found[record.ticket] === record);
+    return filtered;
+}
+
+function parseLine(line, fields) {
+    const parts = line.split('|');
+    const obj = {};
+    fields.forEach((field, i) => obj[field] = parts[i]);
+    return obj;
+}
+
+function printRecords(records) {
+    const fieldLengths = {};
+    records.forEach(record => {
+        displayFields.forEach(({ name, style }) => {
+            const length = record && record[name] && record[name].length;
+            const current = fieldLengths[name] || 0;
+            fieldLengths[name] = Math.max(current, length);
+        });
+    });
+
+    function limit(field, length) {
+        if (field.length > length) {
+            return field.substring(0, length - 2) + '…';
+        } else {
+            return field;
+        }
+    }
+
+    records.forEach((record, i) => {
+        let line = displayFields.map(({ name, style }) => {
+            const length = Math.min(fieldLengths[name], MAX_FIELD_LENGTH);
+            const value = record[name] || '';
+            const limited = limit(value, MAX_FIELD_LENGTH);
+            const padded = limited.padEnd(length, ' ');
+            const styled = (style ? style(padded) : padded);
+            return styled;
+        });
+        const prefix = (`${i ? '' : '*'}${i}:`).padStart(5);
+        console.log(prefix, ...line);
+    });
+}
+
+function removeDuplicates(records) {
+    const found = {};
+    return records.filter(record => {
+        if (record.objectname in found) {
+            return false;
+        } else {
+            found[record.objectname] = true;
+            return true;
+        }
+    });
+}
+
+function getPreviousTicketRecords(numRecords = 20) {
+    let repo = new GitRepo(process.cwd());
+    let records = repo.getLocalBranchInfo('-committerdate', ...fields)
+        .then(lines => repo.getCurrentBranchInfo(...fields).then(current => [...current, ...lines]))
+        .then(lines => lines.map(line => parseLine(line, fields)))
+        .then(records => removeDuplicates(records)) // in case current branch was already listed
+        .then(records => records.map(prettifyRecord))
+        .then(records => records.map(assignTicket))
+        .then(records => reduceToTickets(records))
+        .then(records => records.slice(0, numRecords))
+        .then(records => records.map(assignTitle))
+        .then(promises => Promise.all(promises));
+    return records;
+}
+
+function listPreviousTickets(numRecords) {
+    getPreviousTicketRecords(numRecords).then(printRecords);
+}
+
+function changeTicket(ticketIndex) {
+    getPreviousTicketRecords(Math.max(20, ticketIndex + 1))
+        .then(records => records[ticketIndex])
+        .then(record => record.ticket)
+        .then(ticketId => {
+            console.log(`Checking out ticket ${ticketId}`);
+            return ticketId;
+        })
+        .then(ticketId => new TicketManager().checkoutTicket(ticketId))
+        .then(log => (log || []).forEach(line => console.log(line)));
+}
+
+function parseCommandLineArgs() {
+    let arg = process.argv[2];
+    let ticketIndex = 0;
+    let numRecords = 20; // default to 20
+
+    if (arg) {
+        numRecordsMatch = arg.match(/-n(\d+)/);
+        tkIndexMatch = arg.match(/(\d+)/);
+
+        if (numRecordsMatch) {
+            numRecords = parseInt(numRecordsMatch[1]);
+        } else if (tkIndexMatch) {
+            ticketIndex = parseInt(tkIndexMatch[1]);
+        }
+    }
+
+    return { ticketIndex, numRecords };
+}
+
+// get the first command line argument
+const { ticketIndex, numRecords } = parseCommandLineArgs();
+//console.log(`listing ${numRecords} previous tickets`);
+if (ticketIndex) {
+    changeTicket(ticketIndex);
+} else {
+    listPreviousTickets(numRecords);
+}

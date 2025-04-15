@@ -1,0 +1,14 @@
+#!/bin/bash
+
+git branch --sort=committerdate | sed "s/*//" | while read branch; do
+  echo "== $branch ====================================================================================================="
+  git log $branch -n1 --stat | sed "s/^/$branch /" #FIXME: Branch may have a /
+  echo ""
+  echo ""
+done
+
+        
+        
+         
+
+            

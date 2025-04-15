@@ -1,0 +1,35 @@
+{
+  "name": "tickets",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github-raserio:craser/ticket-utilities.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "jest": {
+    "testRegex": "__tests__/.*\\.test.js$",
+    "collectCoverage": true,
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "modulePaths": [
+      "<rootDir>"
+    ]
+  },
+  "devDependencies": {
+    "git-rev-sync": "^3.0.2",
+    "jest": "^27.4.7"
+  },
+  "dependencies": {
+    "chalk": "4",
+    "clipboardy": "^4.0.0",
+    "html-to-rtf": "^2.1.0",
+    "marked": "^14.0.0"
+  }
+}

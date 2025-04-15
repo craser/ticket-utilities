@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+
+'use  strict'
+
+// get the first command line argument
+const branch = process.argv[2]; // optional command line argument
+const TicketManager = require('./js/TicketManager');
+if (branch) {
+    new TicketManager().getPushCommandToTrackingBranch(branch)
+        .then(url => console.log(url));
+} else {
+    new TicketManager().getCurrentTicketPushCommandToTrackingBranch()
+        .then(cmd => console.log(cmd));
+}
+

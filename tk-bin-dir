@@ -1,0 +1,8 @@
+#!/usr/bin/env node
+
+'use  strict'
+
+const CmdRunner = require('./js/CmdRunner');
+let cmd = new CmdRunner('.');
+let bin = cmd.getBinDir();
+console.log(bin);

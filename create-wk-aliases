@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# This is a WORK IN PROGRESS and SHOULD NOT YET BE USED!
+# The idea is to auto-generate a list of aliases so that
+# new clients & workspaces are automagically added to my
+# aliases. HOWEVER, the dev directory strucutre still
+# has a bunch of old stuff in it that doesn't conform to
+# the notes below, and messes with the script.
+#
+# Once the dev directory is cleaned up, I'll come back to
+# this script and finish it.
+
+# The structure of the dev directory is as follows:
+# dev/
+#     [client]/
+#         wk/
+#             [project]/
+#                 [repo]/
+
+# create an alias for each repo under the dev directory
+# the alias should be called wk-[client]-[project] and
+# should call "wk ~/dev/[client]/wk/[project]/[repo]"
+
+for client in `ls ~/dev`; do
+    for project in `ls ~/dev/$client/wk`; do
+        for repo in `ls ~/dev/$client/wk/$project`; do
+            alias_name="wk-${client}-${project}"
+            alias_command="wk ~/dev/$client/wk/$project/$repo"
+            echo "alias $alias_name=\"$alias_command\""
+        done
+    done
+done
+

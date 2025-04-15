@@ -1,0 +1,19 @@
+#!/bin/bash
+
+bin=`dirname $0`
+. $bin/_ticket_settings
+
+base_branch=`pr-branch`
+
+ignore="spc.css|spc.css.map|spc.min.css|bootstrap.css|bootstrap.css.map|bootstrap.min.css|style.css|style.css.map|style.ie.css|style.min.css|app.min.js|bootstrap.bundle.min.js|cartridge/static/default|gulpfile.js"
+
+echo "Checking for warnings..."
+found=0
+files=`git diff --name-only $base_branch | egrep -v "($ignore)"`
+for f in $files; do
+    check-for-warnings "$f"
+    found=$(($found + $?))
+done
+
+echo "Found $found files with warnings."
+exit $found

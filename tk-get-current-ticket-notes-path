@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+
+'use strict'
+
+var ticketId = process.argv[2];
+
+const NodeContext = require('./js/NodeContext');
+let nodeContext = new NodeContext();
+if (ticketId) {
+    var client = nodeContext.getClientByTicketId(ticketId);
+    var path = `${client.getName()}/${ticketId}`;
+    console.log(path);
+} else {
+    var client = nodeContext.getCurrentClient();
+    client.getCurrentTicket()
+        .then(ticket => ticket.getTicketId())
+        .then(ticketId => {
+            var path = `${client.getName()}/${ticketId}`;
+            console.log(path);
+        })
+}

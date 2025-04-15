@@ -1,0 +1,24 @@
+#!/usr/bin/env node
+
+const { stdin, stdout } = require('process');
+const { marked }  = require('marked');
+const htmlToRtf = require('html-to-rtf');
+
+// Initialize an empty string to store the input data
+let inputData = '';
+
+// Listen for data being written to stdin
+stdin.on('data', chunk => {
+  inputData += chunk;
+});
+
+// When the input is done being read, convert it to HTML and then to RTF
+stdin.on('end', () => {
+  const htmlData = marked(inputData);
+  const rtfData = htmlToRtf.convertHtmlToRtf(htmlData);
+  stdout.write(rtfData);
+});
+
+// Set stdin to use utf-8 encoding and resume reading
+stdin.setEncoding('utf-8');
+stdin.resume();

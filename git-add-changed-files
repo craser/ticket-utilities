@@ -1,0 +1,29 @@
+#!/bin/bash
+ignore="(spc.css|spc.css.map|spc.min.css|bootstrap.css|bootstrap.css.map|bootstrap.min.css|style.css|style.css.map|style.ie.css|style.min.css|app.min.js|bootstrap.bundle.min.js|cartridge/static/default|package-lock.json|dw.json)"
+ignore_warnings="(gulpfile.js)"
+
+work_dir="`cat $HOME/.wkd`"
+pushd "$work_dir" > /dev/null
+echo "project directory: `pwd`"
+
+num_added="`git ls-files -m | egrep -v "($ignore)" | wc -l`"
+num_added="`echo ${num_added}`" # trim
+
+git ls-files -m | egrep "$ignore" | while read f; do
+    echo "    ignoring: $f"
+done
+
+git ls-files -m | egrep -v "($ignore)" | while read f; do
+    echo "    adding  : $f"
+    git add "$f"
+
+    echo "$f" | egrep -q "($ignore_warnings)";
+    if [ $? != 0 ]; then
+        check-for-warnings $f | sed "s/^/        *** WARNING | /"
+    else
+        echo "        *** WARNING: not checking $f for warnings"
+    fi
+done
+
+echo "Found $num_added changed files"
+popd > /dev/null

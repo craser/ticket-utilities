@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo "Checking for Jest..."
+git log | grep -q "JEST - INITIAL"
+case $? in
+    0)
+        echo "Found Jest"
+        exit 1
+        ;;
+    *)
+        echo "No Jest found."
+        exit 0
+        ;;
+esac

@@ -1,0 +1,12 @@
+#!/bin/bash
+ignore="(spc.css|spc.css.map|spc.min.css|bootstrap.css|bootstrap.css.map|bootstrap.min.css|style.css|style.css.map|style.ie.css|style.min.css|app.min.js|bootstrap.bundle.min.js|cartridge/static/default)"
+
+work_dir="`cat $HOME/.wkd`"
+pushd "$work_dir" > /dev/null
+
+num_added="`git ls-files -m | egrep -v "($ignore)" | wc -l`"
+num_added="`echo ${num_added}`" # trim
+
+echo "$num_added"
+
+popd > /dev/null

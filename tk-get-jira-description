@@ -1,0 +1,43 @@
+#!/usr/bin/env node
+
+/**
+ * WARNING: This is very clinet-specific, need to generalize.
+ *
+ * @type {(function(*): Promise<*>)|{}}
+ */
+const TicketManager = require('./js/TicketManager');
+
+function getDescription(json) {
+    const fields = [
+        { name: "Problem Statement", key: "customfield_18535" },
+        { name: "Goals", key: "customfield_18539" },
+        { name: "Description", key: "description" },
+        { name: "Audience Exclusions", key: "customfield_18543" },
+        { name: "Target Audience", key: "customfield_18596" },
+        { name: "Acceptance Criteria", key: "customfield_12401" },
+    ];
+    const description = fields.map(field => {
+        return `${field.name}:\n${json.fields[field.key]}`;
+    }).join('\n');
+    return description;
+}
+
+let ticketId = process.argv[2];
+ticketId = ticketId;
+console.log(`ticket id: "${ticketId}"`)
+if (ticketId) {
+    let ticket = new TicketManager().getTicketByTicketId(ticketId);
+    ticket.getTicketJson()
+        .then(json => {
+            const description = getDescription(json);
+            console.log(description);
+        });
+}
+
+
+
+
+
+
+
+

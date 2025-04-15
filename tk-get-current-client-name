@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+'use  strict'
+
+const NodeContext = require('./js/NodeContext');
+let nodeContext = new NodeContext();
+let client = nodeContext.getCurrentClient();
+console.log(client.getName());
+
+
+

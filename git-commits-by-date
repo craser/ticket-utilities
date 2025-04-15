@@ -1,0 +1,23 @@
+#!/bin/bash
+
+function list_branches {
+    git branch --sort=-committerdate | \
+        egrep -v "(pre-squash|squashed)" | \
+        sed "s/\*/ /" | \
+        sed "s/^ *//" | \
+        head -20
+}
+
+function list_commits_by_date {
+    date="$1"
+    for branch in `list_branches`; do
+        git log "$branch" | \
+            grep "$date"
+
+    done
+}
+
+
+
+
+list_commits_by_date $1

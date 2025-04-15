@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+
+'use  strict'
+
+const TicketManager = require('./js/TicketManager');
+let mgr = new TicketManager();
+let clientName = process.argv[2];
+let gitRemote = process.argv[3];
+mgr.initClient(clientName, gitRemote);
+

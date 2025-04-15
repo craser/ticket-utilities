@@ -1,0 +1,87 @@
+#!/bin/bash
+
+max_commits=""
+base_revision=""
+
+while getopts "n:b:" opt; do
+    case "${opt}" in
+        n)                                          # case-insensitive
+            max_commits=$OPTARG
+            ;;
+        b)
+            base_revision=$OPTARG
+            ;;
+    esac
+done
+shift $((OPTIND-1))             # Strip off the already-parse arguments.
+
+
+orig_branch="`current-dev-branch`"
+squash_branch="$orig_branch.squashed"
+ticket="`ticket-id $orig_branch`"
+ticket_title="`tk-get-jira-title $ticket`"
+echo "Current branch  : $orig_branch"
+echo "Ticket          : $ticket"
+echo "Ticket Title    : $ticket_title"
+echo "Base Revision   : $base_revision"
+
+
+if [ -z "$base_revision" ]; then
+    num_commits="`git log | sed -nE "/$ticket(\||:| -)/I!q;p" | wc -l`"
+    num_commits="`echo $num_commits`"                           # trim
+    if [ ! -z "$max_commits" ]; then
+        echo "max commits: $max_commits"
+        num_commits=$(($num_commits>$max_commits ? $max_commits : $num_commits))
+    else
+        echo "no max"
+    fi
+    base_revision="HEAD~$(($num_commits))"
+else
+    num_commits="`git log "$base_revision..HEAD" | wc -l`"
+    num_commits="`echo $num_commits`"                           # trim
+fi
+
+
+# figure out the commit message
+if [ -z "$1" ]; then
+    commit_message="$ticket: $ticket_title"
+else
+    commit_message="$1"
+fi
+echo "Commit Message  : $commit_message"
+
+echo "Squashing $num_commits commits:"
+git log "$base_revision..HEAD" | sed "s/^/    /"
+
+read -p "Press ENTER to continue."
+
+# delete the previous squash branch, if it exists
+if [ "`git branch | grep $squash_branch`" ]; then
+    echo "Deleting squash branch: $squash_branch"
+    git branch -D "$squash_branch"
+fi
+
+# check out a new branch for the squash
+echo "Creating new squash branch: $squash_branch"
+git checkout -b "$squash_branch"
+
+# squash commits into one
+git reset --soft "$base_revision"
+git-add-changed-files >> /dev/null
+echo "Committing changes..."
+
+
+git commit -m "$commit_message" --no-verify | sed "s/^/    /"
+
+
+num_differences=`git diff --name-status "$orig_branch" "$squash_branch" | wc -l`
+num_differences=`echo $num_differences`
+
+if [ $num_differences != 0 ]; then
+    echo "WARNING DIFFERENCES FOUND:"
+    git diff --name-status "$orig_branch" "$squash_branch" | sed "s/^/    /"
+fi
+
+echo "Squashed into commit:"
+git log -n 1 | sed "s/^/    /"
+

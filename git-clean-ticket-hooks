@@ -1,0 +1,14 @@
+#!/bin/bash
+
+dir=`dirname $0`
+src_dir="$dir/git-hooks"
+dst_dir="./.git/hooks"
+
+echo "Current directory: `pwd`"
+if [ ! -d "$dst_dir" ]; then
+   echo "Hooks directory not found: $dst_dir"
+   exit 10
+else
+    echo "Removing all git hooks."
+    rm -vf $dst_dir/* | sed "s/^/    /"
+fi

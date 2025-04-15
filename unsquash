@@ -1,0 +1,20 @@
+#!/bin/bash
+
+ticket="`ticket-id \`current-dev-branch\``"
+num_commits="`git log | sed -n "/$ticket/!q;p" | wc -l`"
+num_commits="`echo $num_commits`"                           # trim
+current_branch="`current-dev-branch`"
+save_branch="`git branch | grep DIGITAL-11358 | grep pre-squash | sort -r | head -1`"
+save_branch="`echo $save_branch`"
+squashed_branch="`current-dev-branch`.`timestamp`.squashed"
+
+echo "Most recent pre-squash branch: $save_branch"
+echo "Saving current branch as     : $squashed_branch"
+git branch -M "$squashed_branch"
+echo "Restoring: $save_branch"
+git checkout "$save_branch" -b "$current_branch"
+
+
+
+
+

@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+'use  strict'
+
+const NodeContext = require('./js/NodeContext');
+
+const propertyName = process.argv[2];
+let nodeContext = new NodeContext();
+let client = nodeContext.getCurrentClient();
+let propertyValue = client.getProperty(propertyName);
+console.log(propertyValue || '');
+
+
+

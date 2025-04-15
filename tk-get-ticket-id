@@ -1,0 +1,11 @@
+#!/usr/bin/env node
+
+'use  strict'
+
+const TicketManager = require('./js/TicketManager');
+let mgr = new TicketManager();
+let string = process.argv[2];
+mgr.scrubTicketId(string)
+    .then(ticketId => console.log(ticketId));
+
+

@@ -1,0 +1,27 @@
+#!/bin/bash
+
+WARN_ALERT="alert"
+WARN_CONSOLE="console.log"
+WARN_DEBUGGER="debugger"
+WARN_FIXME="FIXME: DO NOT COMMIT TO CODE REPOSITORY"
+WARN_RANGER="I want to be an Air Force Ranger"
+WARN_DANGER="I want to live a life of danger!"
+WARN_DEBUG_MAP="sourceMappingURL"
+
+EGREP_SEARCH_EXP="($WARN_ALERT|$WARN_CONSOLE|$WARN_DEBUGGER|$WARN_FIXME|$WARN_RANGER|$WARN_DANGER|$WARN_DEBUG_MAP)"
+
+file="$1"
+found=0
+
+egrep -qn "$EGREP_SEARCH_EXP" $file
+if [ $? == 0 ]; then
+    if [ $found == 0 ]; then
+        echo "$file:";
+    fi;
+    egrep -n "$EGREP_SEARCH_EXP" $file
+    found=$(($found + 1))
+fi
+
+exit $found
+
+

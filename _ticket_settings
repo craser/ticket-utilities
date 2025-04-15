@@ -1,0 +1,11 @@
+#!/bin/bash
+
+bin="$HOME/bin/tickets" # expedient
+wk_dir=`cat $HOME/.wkd`
+for client in $bin/*.client; do
+    . $client # defines client-specific values for constants
+    echo "$wk_dir" | grep -q "/dev/$client_name"
+    if [ 0 == $? ]; then
+        break
+    fi
+done

@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "Checking for commits that should not be pushed..."
+git log | head -100 | egrep -qi "(do not commit to origin|defensive)"
+case $? in
+    0)
+        echo "Found:"
+        git log | egrep -i "(do not commit to origin|defensive)" | sed "s/^/    /"
+        exit 1
+        ;;
+    *)
+        echo "No commmits found that shouldn't be pushed."
+        exit 0
+        ;;
+esac

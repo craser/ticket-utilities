@@ -1,0 +1,13 @@
+#!/bin/bash
+
+bin=`dirname $0`
+. $bin/_ticket_settings
+
+base_branch="$base_branch_default"
+dev_branch=`current-dev-branch`
+
+git stash
+git checkout "$base_branch"
+git checkout "$dev_branch"
+git stash pop
+gulp build

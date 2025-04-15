@@ -1,0 +1,14 @@
+#!/usr/bin/env node
+
+'use  strict'
+
+const TicketManager = require('./js/TicketManager');
+let mgr = new TicketManager();
+mgr.getCurrentTicketId()
+    .then(ticketId => console.log(ticketId))
+    .catch(() => {
+        return mgr.getCurrentTicketBranch()
+            .then(branch => branch.toUpperCase())
+            .then(branch => console.log(branch));
+    })
+

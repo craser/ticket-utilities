@@ -1,0 +1,13 @@
+client_name="acme"
+base_branch="main"
+ticket_prefixes="ACME PELQ"
+ticket_prefix="ACME"
+ticket_branch_format="%{id}"
+ticket_url_format="https://ACME.atlassian.net/browse/%s"
+ticket_api_url_format="https://ACME.atlassian.net/rest/api/2/issue/%s"
+ticket_api_token="[JIRA TOKEN HERE]"
+ticket_api_user="[JIRA SIGN-ON EMAIL]"
+
+# github stuff (lists are comma-separated)
+pr_assignees=
+pr_labels=

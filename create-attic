@@ -1,0 +1,19 @@
+#!/bin/bash
+
+bin=`dirname $0`
+. $bin/_ticket_settings
+
+repo_root=`git rev-parse --show-toplevel`
+repo_name=`basename $repo_root`
+attic_dir="$HOME/dev/$client_name/attic"
+attic_root="$attic_dir/$repo_name"
+
+echo "work repo : $repo_root"
+echo "attic repo: $attic_root"
+
+mkdir -p "$attic_dir"
+git clone "$repo_root" "$attic_root"
+
+echo "adding $attic_root as new git remote"
+git remote add attic "$attic_root"
+

@@ -1,0 +1,17 @@
+#!/usr/bin/env node
+
+const getTicketTitle = require('./js/TicketTitleFetcher');
+
+let ticketId = process.argv[2];
+if (ticketId) {
+    getTicketTitle(ticketId)
+        .then(title => console.log(title));
+}
+
+
+
+
+
+
+
+
